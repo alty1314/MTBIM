@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>加载GIS环境</title>
+  <style media="screen">
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+    }
+
+    .model {
+      flex: 1;
+    }
+
+    .bf_demo_label {
+      line-height: 40px;
+      margin-left: 5px;
+      font-size: 15px;
+      vertical-align: middle;
+    }
+
+    .bf_demo_radio {
+      display: none;
+    }
+
+    .bf_demo_radio+label {
+      position: relative;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      border: 1px solid #9a9a9a;
+      background-color: transparent;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 15px;
+    }
+
+    .bf_demo_radio:checked+label {
+      position: relative;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      border: 1px solid #32D3A6;
+      background-color: transparent;
+      display: inline-block;
+    }
+
+    .bf_demo_radio:checked+label:after {
+      position: absolute;
+      content: '';
+      font-size: 0;
+      border: 4px solid #32D3A6;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+    }
+
+    .bf_demo_option_text {
+      margin-right: 15px;
+      vertical-align: middle;
+      line-height: 40px;
+      vertical-align: middle;
+    }
+  </style>
+  <!-- 引用BIMFACE的JavaScript显示组件库 -->
+  <script src="https://static.bimface.com/api/BimfaceSDKLoader/BimfaceSDKLoader@latest-release.js"
+          charset="utf-8"></script>
+</head>
+
+<body>
+<div class='main'>
+  <div class='bf_demo_radios'>
+    <input type="radio" id="option-1" name="mode" class="bf_demo_radio" checked />
+    <label for="option-1" onclick="setTiandituSatellite()"></label>
+    <span class="bf_demo_option_text">天地图影像地图</span>
+    <input type="radio" id="option-2" name="mode" class="bf_demo_radio" />
+    <label for="option-2" onclick="setTiandituRoadmap()"></label>
+    <span class="bf_demo_option_text">天地图矢量地图</span>
+  </div>
+  <!-- 定义DOM元素，用于在该DOM元素中显示模型或图纸 -->
+  <div class='model' id="domId"></div>
+</div>
+<script type="text/javascript">
+  let viewToken = 'b73146eb4d884764afe96d2bcf1a9c0d';
+  // 声明Viewer及App
+  let viewer3D;
+  let app;
+  let viewAdded = false;
+  let map;
+
+  // 配置JSSDK加载项
+  window.onload = function () {
+    let loaderConfig = new BimfaceSDKLoaderConfig();
+    loaderConfig.viewToken = viewToken;
+    BimfaceSDKLoader.load(loaderConfig, successCallback, failureCallback);
+  }
+
+  // 加载成功回调函数
+  function successCallback(viewMetaData) {
+    let dom4Show = document.getElementById('domId');
+    // 设置WebApplication3D的配置项
+    let webAppConfig = new Glodon.Bimface.Application.WebApplication3DConfig();
+    webAppConfig.domElement = dom4Show;
+    webAppConfig.enableLogarithmicDepthBuffer = true;
+    // 创建WebApplication3D，用以显示模型
+    app = new Glodon.Bimface.Application.WebApplication3D(webAppConfig);
+    app.addView(viewToken);
+    viewer3D = app.getViewer();
+    // 增加加载完成监听事件
+    viewer3D.addEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.ViewAdded, function () {
+      viewAdded = true;
+      //自适应屏幕大小
+      window.onresize = function () {
+        viewer3D.resize(document.documentElement.clientWidth, document.documentElement.clientHeight - 40)
+      }
+      let mapConfig = new Glodon.Bimface.Plugins.TileMap.MapConfig();
+      mapConfig.viewer = viewer3D;
+      // 设置模型载入的基点，即模型上某一特征点的世界坐标，可通过鼠标点击事件获取
+      mapConfig.basePoint = {
+        "x": -85689.088,
+        "y": -62066.347
+      };
+      // 设置模型载入基点所对应的经纬度（WGS84）
+      mapConfig.modelPosition = [110.128063, 31.37662];
+      /*mapConfig.modelPosition = [121.62844633392, 29.840569498277];*/
+      // 设置模型的旋转弧度值
+      mapConfig.modelRotationZ = 0 * Math.PI / 180;
+      // 设置模型零零标高对应的高程值，单位为米
+      mapConfig.modelAltitude = 3.0;
+      // 构造地图对象
+      map = new Glodon.Bimface.Plugins.TileMap.Map(mapConfig);
+      // 设置地图类型为天地图的影像底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+      map.setMapSource({
+        url: 'http://t0.tianditu.gov.cn/img_w/wmts?tk=f41f3a1a1026f16316a0c1ba7f4cb55',
+        provider: 'Tianditu',
+        credit: Glodon.Bimface.Common.Credit.Tianditu
+      });
+      // 渲染场景
+      viewer3D.render();
+    });
+  }
+
+  // 加载失败回调函数
+  function failureCallback(error) {
+    console.log(error);
+  }
+
+  // 设置地图类型为天地图的影像底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+  function setTiandituSatellite() {
+    map.setMapSource({
+      url: 'http://t0.tianditu.gov.cn/img_w/wmts?tk=f41f3a1a1026f16316a0c1ba7f4cb557',
+      provider: 'Tianditu',
+      credit: Glodon.Bimface.Common.Credit.Tianditu
+    });
+  }
+
+  // 设置地图类型为天地图的矢量底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+  function setTiandituRoadmap() {
+    map.setMapSource({
+      url: 'http://t0.tianditu.gov.cn/vec_w/wmts?tk=f41f3a1a1026f16316a0c1ba7f4cb55',
+      provider: 'Tianditu',
+      credit: Glodon.Bimface.Common.Credit.Tianditu
+    });
+  }
+</script>
+</body>
+
+</html>

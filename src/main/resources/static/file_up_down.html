@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>fileUpDown</title>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 引入样式css库 -->
+    <link rel="stylesheet" href="plugins/elementui/index.css">
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/echarts.js"></script>
+</head>
+<body>
+<div id ="app"  align="center">
+
+    <el-upload
+            align="center"
+            class="upload-demo"
+            action="/file/upload"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :before-remove="beforeRemove"
+            drag
+            multiple
+            :limit="1"
+            :on-exceed="handleExceed"
+            :file-list="fileList">
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <el-button size="small" type="primary">点击上传</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传xls/xlsx的excel文件文件，且不超过100m</div>
+
+    </el-upload>
+    <hr size="20px"/>
+    <el-button @click="tableText()" align="center">上传文件数据</el-button>
+    <template>
+        <div slot="tip" style="font-size:20px" >上传文件数据内容</div>
+        <el-button >数据导入</el-button>
+        <el-table
+                :data="tableData"
+                height="250"
+                border
+                style="width: 100%">
+
+            <el-table-column
+                    prop="id"
+                    label="id"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="bl"
+                    label="设备名称"
+                    width="100">
+            </el-table-column>
+
+            <el-table-column
+                    prop="time"
+                    label="时间"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="temperature"
+                    label="温度"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="waterlevel"
+                    label="水位"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="displacement"
+                    label="位移"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="settling"
+                    label="沉降"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="stable"
+                    label="稳定性"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="flow"
+                    label="渗流">
+            </el-table-column>
+        </el-table>
+    </template>
+
+
+    <el-button @click="reprint()" class="dalfBut">运行数据下载</el-button>
+</div>
+<!--js库-->
+<script src="js/vue.js"></script>
+<script src="plugins/elementui/index.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    new Vue({
+        el:"#app",
+        methods:{
+            handlePreview(file) {
+                console.log(file);
+                this.$message(file.response.msg);
+                console.log(file.response.saveFilePath);
+                this.tableData = file.response.data;
+            },
+            beforeRemove(file, fileList) {
+                return this.$confirm(`确定移除 ${ file.name }？`);
+            },
+            reprint() {
+                axios.get("/file/download").then((res) => {    //服务器打开的时候的localhost会变化，这点需要注意
+                    console.log("=======>");
+                    window.open("http://localhost/file/download") }
+                )},
+            tableText(){
+                this.handlePreview();
+            }
+        },
+        data() {
+            return {
+                fileList: [],
+                tableData:[],
+            }
+        },
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>数据查询</title>
+  <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- 引入样式 -->
+
+  <link rel="stylesheet" href="plugins/elementui/index.css">
+
+  <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .el-table .warning-row {
+      background: #3dcfe8;
+    }
+
+    .el-table .success-row {
+      background: #8ed564;
+    }
+  </style>
+</head>
+<body>
+
+<div id="demo">
+  <!--数据展示标题-->
+  <div class="content-header">
+    <h1>数据管理</h1>
+  </div>
+  <!--数据展示标题end-->
+
+  <div id = "resourceDisplay">
+    <!--条件查询部件-->
+    <div class="filter-container">
+      <el-input placeholder="id" v-model="message1" style="width: 200px;" class="filter-item"></el-input> <!--v-modle还没有设置-->
+      <el-input placeholder="仪器" v-model="message2" style="width: 200px;" class="filter-item"></el-input>
+      <el-date-picker type="date" placeholder="    选择日期" value-format="yyyy-MM-dd" v-model="message3" style="width: 200px;"></el-date-picker>
+      <!--<el-input placeholder="图书描述" v-model="message3" style="width: 200px;" class="filter-item"></el-input>-->
+      <el-button @click="add()" class="dalfBut">添加</el-button>
+      <el-button @click="select()" class="dalfBut">条件查询</el-button>
+      <!--后台代码还没写呢-->
+      <el-button @click="select()" class="dalfBut">数据删除</el-button>
+    </div>
+    <!--条件查询部件end-->
+    <!--表格-->
+    <template>
+    <el-table
+            :data="tableData"
+            border
+            style="width: 100%"
+            :row-class-name="tableRowClassName">
+
+      <!--<el-table-column
+              prop="id"
+              label="id"
+              width="100">
+      </el-table-column>-->
+      <el-table-column
+              prop="bl"
+              label="设备名称"
+              width="150">
+      </el-table-column>
+
+      <el-table-column
+              prop="time"
+              label="时间"
+              width="200">
+      </el-table-column>
+      <el-table-column
+              prop="temperature"
+              label="温度"
+              width="120">
+      </el-table-column>
+      <el-table-column
+              prop="waterlevel"
+              label="水位"
+              width="100">
+      </el-table-column>
+      <el-table-column
+              prop="displacement"
+              label="位移"
+              width="100">
+      </el-table-column>
+      <el-table-column
+              prop="settling"
+              label="沉降"
+              width="100">
+      </el-table-column>
+      <el-table-column
+              prop="stable"
+              label="稳定性"
+              width="100">
+      </el-table-column>
+      <el-table-column
+              prop="flow"
+              label="渗流">
+      </el-table-column>
+
+    </el-table>
+    </template>
+
+    <div class="pagination-container">
+
+      <el-pagination
+              class="pagiantion"
+
+              @current-change="handleCurrentChange"
+
+              :current-page="pagination.currentPage"
+
+              :page-size="pagination.pageSize"
+
+              layout="total, prev, pager, next, jumper"
+
+              :total="100">
+
+      </el-pagination>
+
+    </div>
+    <!--分页组件end-->
+  </div>
+  <!--分页组件-->
+
+
+</div>
+
+<!-- 引入组件库 -->
+
+<script src="js/vue.js"></script>
+
+<script src="plugins/elementui/index.js"></script>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+
+<script src="js/axios-0.18.0.js"></script>
+
+
+<script>
+
+  var vue = new Vue({
+    el:"#demo",
+
+    created(){  //钩子函数，VUE对象初始化完成后自动执行
+      this.select();
+    },
+    methods:{
+      //创建函数
+      /*表格行内颜色设置*/
+      tableRowClassName({row, rowIndex}) {  //每行的颜色设置
+        if (rowIndex === 1) {
+          return 'warning-row';
+        } else if (rowIndex === 3) {
+          return 'success-row';
+        }else if (rowIndex === 5) {
+          return 'warning-row';
+        }else if (rowIndex === 7) {
+          return 'success-row';
+        }
+        return '';
+      },
+
+      //从后端获取资料设置
+      getAll(){
+        axios.get("/data").then((res)=>{    //服务器打开的时候的localhost会变化，这点需要注意
+          console.log(res.data);
+          this.tableData = res.data;
+        })
+      },
+
+      //分页设置
+      select(){
+        param = "?id="+this.message1;
+        param +="&bl="+this.message2;
+        if(this.message3 == null){
+          param +="&time=";console.log(this.message3);
+        }else {param +="&time="+this.message3;}
+
+
+        console.log(param);
+        axios.get("/data/"+this.pagination.currentPage+"/"+this.pagination.pageSize+param).then((res)=>{    //服务器打开的时候的localhost会变化，这点需要注意
+          console.log(res.data);
+          this.tableData = res.data;
+          console(res.data.id)
+        })
+
+      },
+
+      /*增加*/
+      add(){
+        let message = {
+          "id":this.message1,
+          "bl":this.message2,
+          "time":this.message3,
+        };
+        this.tableData.push(message);
+        console.log(this.message3)
+      },
+      /*分页层代码*/
+      handleCurrentChange(currentPage) {
+        //修改页码值为当前选中的页码值
+        this.pagination.currentPage = currentPage;
+        //执行查询
+        this.select();
+      },
+    },
+
+    /*数据层*/
+    data() {
+      return {
+        tableData: [],
+        message1:'',
+        message2:'',
+        message3:'',
+        pagination:{
+          currentPage:1,
+          pageSize:10,
+        }
+      }
+    }
+  })
+</script>
+</body>
+</html>

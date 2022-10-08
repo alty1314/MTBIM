@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>添加水面效果</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+      width: 100%
+    }
+
+    .model {
+      flex: 1
+    }
+
+    .buttons {
+      font-size: 0;
+    }
+
+    .button {
+      margin: 5px 0 5px 5px;
+      width: 150px;
+      height: 30px;
+      border-radius: 3px;
+      border: none;
+      background: #32D3A6;
+      color: #FFFFFF;
+    }
+
+    .button-short {
+      margin: 5px 0 5px 5px;
+      width: 100px;
+      height: 30px;
+      border-radius: 3px;
+      border: none;
+      background: #32D3A6;
+      color: #FFFFFF;
+    }
+  </style>
+  <!-- 引用BIMFACE的JavaScript显示组件库 -->
+  <script src="https://static.bimface.com/api/BimfaceSDKLoader/BimfaceSDKLoader@latest-release.js" charset="utf-8">
+  </script>
+</head>
+
+<body>
+<div class='main'>
+  <div class='buttons'>
+    <button class="button" id="btnAddWaterByComponents" onclick="addWaterByComponents()">通过平面构件添加水面</button>
+    <button class="button" id="btnAddWaterByBoundary" onclick="addWaterByBoundary()">通过构造点添加水面</button>
+    <button class="button-short" id="btnSetLevel" onclick="setLevel()">水面下降</button>
+    <button class="button-short" id="btnRemoveEffect" onclick="removeEffect()">去除水面效果</button>
+
+  </div>
+  <!-- 定义DOM元素，用于在该DOM元素中显示模型或图纸 -->
+  <div class='model' id="domId"></div>
+</div>
+<script type="text/javascript">
+  var viewer3D;
+  var app;
+  var viewAdded = false;
+  var viewToken = '9eeaced2e1e046e4bc71bb5c16381140';
+  // 初始化显示组件
+  var options = new BimfaceSDKLoaderConfig();
+  options.viewToken = viewToken;
+  BimfaceSDKLoader.load(options, successCallback, failureCallback);
+
+  function successCallback(viewMetaData) {
+    if (viewMetaData.viewType == "3DView") {
+      // ======== 判断是否为3D模型 ========
+      // 获取DOM元素
+      var dom4Show = document.getElementById('domId');
+      var webAppConfig = new Glodon.Bimface.Application.WebApplication3DConfig();
+      webAppConfig.domElement = dom4Show;
+      // 创建WebApplication
+      app = new Glodon.Bimface.Application.WebApplication3D(webAppConfig);
+      // 添加待显示的模型
+      app.addView(viewToken);
+      // 从WebApplication获取viewer3D对象
+      viewer3D = app.getViewer();
+      // 监听添加view完成的事件
+      viewer3D.addEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.ViewAdded, function () {
+        //自适应屏幕大小
+        window.onresize = function () {
+          viewer3D.resize(document.documentElement.clientWidth, document.documentElement
+                  .clientHeight - 40);
+        }
+        viewAdded = true;
+        // 渲染3D模型
+        viewer3D.render();
+      });
+    }
+  }
+
+  function failureCallback(error) {
+    console.log(error);
+  }
+
+  var waterEffect = null;
+  var waterBoundary;
+  var water1;
+  var water2;
+  var WaterComponents = [{ modelId: "1908967217997920", objectIds: ["311979", "312471"] }];
+  var pt1 = {
+    x: 2915,
+    y: 2300,
+    z: 80
+  };
+  var pt2 = {
+    x: 2915,
+    y: 2096,
+    z: 80
+  };
+  var pt3 = {
+    x: 2575,
+    y: 2096,
+    z: 80
+  };
+  var pt4 = {
+    x: 2575,
+    y: 2300,
+    z: 80
+  };
+  var waterBoundary = [pt1, pt2, pt3, pt4];
+
+  var isWaterAddedByComponents = false;
+
+  function addWaterByComponents() {
+    if (!isWaterAddedByComponents) {
+      viewer3D.hideComponentsById(WaterComponents);
+      var waterEffectConfig1 = new Glodon.Bimface.Plugins.Animation.WaterEffectConfig();
+      //通过平面构件添加水面效果（ids、boundary选填一项，若都填写则默认ids有效）
+      waterEffectConfig1.ids = WaterComponents;
+      waterEffectConfig1.viewer = viewer3D;
+      // 构造水面效果类，并设置效果
+      water1 = new Glodon.Bimface.Plugins.Animation.WaterEffect(waterEffectConfig1);
+      var waterColor = new Glodon.Web.Graphics.Color('#23A9F2', 0.4);
+      water1.setColor(waterColor);
+      water1.setScale(2);
+      water1.setXDirection(2);
+      water1.setYDirection(2);
+      isWaterAddedByComponents = true;
+    }
+  }
+
+  var isWaterAddedByBoundary = false;
+
+  function addWaterByBoundary() {
+    if (!isWaterAddedByBoundary) {
+      var waterEffectConfig2 = new Glodon.Bimface.Plugins.Animation.WaterEffectConfig();
+      //通过构造点添加水面效果（ids、boundary选填一项，若都填写则默认ids有效）
+      waterEffectConfig2.boundary = waterBoundary;
+      waterEffectConfig2.viewer = viewer3D;
+      // 构造水面效果类，并设置效果
+      water2 = new Glodon.Bimface.Plugins.Animation.WaterEffect(waterEffectConfig2);
+      var waterColor = new Glodon.Web.Graphics.Color('#23A9F2', 0.4);
+      water2.setColor(waterColor);
+      water2.setScale(2);
+      water2.setXDirection(2);
+      water2.setYDirection(2);
+      isWaterAddedByBoundary = true;
+    }
+  }
+
+  var waterOffset = false;
+  function setLevel() {
+    if (!water1 && !water2) {
+      return;
+    } else {
+      if (!waterOffset) {
+        if (water1) {
+          water1.setOffset(-20);
+        }
+        if (water2) {
+          water2.setOffset(-20);
+        }
+        setButtonText("btnSetLevel", "水面上升");
+      } else {
+        if (water1) {
+          water1.setOffset(20);
+        }
+        if (water2) {
+          water2.setOffset(20);
+        }
+        setButtonText("btnSetLevel", "水面下降");
+      }
+      waterOffset = !waterOffset;
+    }
+  }
+
+  // 移除水面效果
+  function removeEffect() {
+    if (isWaterAddedByComponents) {
+      water1.destroy();
+      water1 = null;
+      viewer3D.showComponentsById(WaterComponents);
+      viewer3D.render();
+      isWaterAddedByComponents = false;
+    }
+    if (isWaterAddedByBoundary) {
+      water2.destroy();
+      water2 = null;
+      isWaterAddedByBoundary = false;
+    }
+    if (waterOffset) {
+      waterOffset = false;
+      setButtonText("btnSetLevel", "水面下降");
+    }
+  }
+
+  // ************************** 按钮文字 **************************
+  function setButtonText(btnId, text) {
+    var dom = document.getElementById(btnId);
+    if (dom != null && dom.nodeName == "BUTTON") {
+      dom.innerText = text;
+    }
+  }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Title</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+
+<table id="demo" lay-filter="test"></table>
+
+<script src="layui/layui.js"></script>
+
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            ,height: 312
+            ,url: '/book1' //数据接口
+            ,contentType: 'application/json'//这里一定要加上这
+            ,page: true //开启分页
+            ,cols: [[ //表头
+                {field: 'id', title: 'ID', width:80, sort: true, fixed: 'left'}
+                ,{field: 'username', title: '用户名', width:80}
+                ,{field: 'password', title: '性别', width:80, sort: true}
+            ]]
+        });
+
+    });
+</script>
+</body>
+</html>

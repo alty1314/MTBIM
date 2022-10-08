@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="91481dff-e79a-40c9-8ead-2e136efc066e" name="默认变更列表" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="2FngiD7WcRpRhJjz7ab8Da94O1X" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="项目" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.github.ui.GithubSettingsConfigurable" />
+  </component>
+  <component name="RunManager" selected="JUnit.ss.tett">
+    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ss.ssssdas" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MTBIM" />
+      <shortenClasspath name="MANIFEST" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="MTBIM.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="MTBIM" />
+      <option name="MAIN_CLASS_NAME" value="MTBIM.ss" />
+      <option name="METHOD_NAME" value="ssssdas" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ss.tett" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="MTBIM" />
+      <shortenClasspath name="MANIFEST" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="MTBIM.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="MTBIM" />
+      <option name="MAIN_CLASS_NAME" value="MTBIM.ss" />
+      <option name="METHOD_NAME" value="tett" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MTD" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="MTBIM" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="MTBIM.MTD" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="JUnit.ss.tett" />
+      <item itemvalue="JUnit.ss.ssssdas" />
+      <item itemvalue="Spring Boot.MTD" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.ss.tett" />
+        <item itemvalue="JUnit.ss.ssssdas" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="91481dff-e79a-40c9-8ead-2e136efc066e" name="默认变更列表" comment="" />
+      <created>1665133388786</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1665133388786</updated>
+      <workItem from="1665133390259" duration="67000" />
+      <workItem from="1665133462031" duration="28000" />
+      <workItem from="1665133715102" duration="12000" />
+      <workItem from="1665133747951" duration="4917000" />
+      <workItem from="1665213907209" duration="40000" />
+      <workItem from="1665213964807" duration="3266000" />
+      <workItem from="1665228467137" duration="2285000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

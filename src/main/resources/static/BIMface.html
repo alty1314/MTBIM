@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>My first BIMFACE app</title>
+    <style type="text/css">
+      * {
+        margin: 0;
+        padding: 0;
+      }	  /*外边框距和内边框距离为0*/
+      html, body {
+        height: 100%;
+      }
+
+	  .buttons {
+		  font-size: 0;
+	  }
+	  .button {
+		  margin :5px 0px 5px 5px;
+		  width :90px;
+		  height : 30px;
+		  border-radius: 3px;
+		  border: none;
+		  background:#11DAB7 ;
+		  color : #FFFFFF;
+	  }
+	  .button-short {
+		  margin: 5px 0 5px 5px;
+		  width: 100px;
+		  height: 30px;
+		  border-radius: 3px;
+		  border: none;
+		  background: #32D3A6;
+		  color: #FFFFFF;
+	  }
+      #domId {
+		height: 80%;
+      }
+	  .bf_demo_label {
+		  line-height: 40px;
+		  margin-left: 5px;
+		  font-size: 15px;
+		  vertical-align: middle;
+	  }
+	  .bf_demo_radio {
+		  display: none;
+	  }
+	  .bf_demo_radio+label {
+		  position: relative;
+		  height: 14px;
+		  width: 14px;
+		  border-radius: 50%;
+		  border: 1px solid #9a9a9a;
+		  background-color: transparent;
+		  display: inline-block;
+		  vertical-align: middle;
+		  margin-left: 15px;
+	  }
+	  .bf_demo_radio:checked+label {
+		  position: relative;
+		  height: 14px;
+		  width: 14px;
+		  border-radius: 50%;
+		  border: 1px solid #32D3A6;
+		  background-color: transparent;
+		  display: inline-block;
+	  }
+	  .bf_demo_radio:checked+label:after {
+		  position: absolute;
+		  content: '';
+		  font-size: 0;
+		  border: 4px solid #32D3A6;
+		  border-radius: 50%;
+		  top: 3px;
+		  left: 3px;
+	  }
+	  .bf_demo_option_text {
+		  margin-right: 15px;
+		  vertical-align: middle;
+		  line-height: 40px;
+		  vertical-align: middle;
+	  }
+    </style>
+  </head>
+  <body>
+	  <!--建立按钮-->
+	<div class='main'>
+		<div class = 'buttons'> 
+			<button class = "button" id = "btnIsolation" onclick="isolateComponents()">构建隔离</button>
+			 <button class="button" id="btnZoomToSelection" onclick="zoomToSelectedComponents()">构件定位</button>
+			 <button class="button" id="btnOverrideColor" onclick="overrideComponents()">构件着色</button>
+			 <button class="button" id="btnStartAutoRotate" onclick="startAutoRotate()">开始旋转场景</button> //旋转场景
+			 <input type="text" id="number" value = "请输入旋转速度"/>
+			  <button class="button" id="btnSaveState" onclick="getCurrentState()">保存状态</button>
+			 <button class="button" id="btnRestoreState" onclick="setState()">恢复状态</button>
+			<br />
+			 <button class="button" id="btnBlinkComponent" onclick="blinkComponents()">构件强调</button>
+			 <button class="button" id="btnAddKeyFrame" onclick="addKeyFrame()">添加关键帧</button>
+			 <button class="button" id="btnPlayWalkThrough" onclick="playWalkThrough()">播放路径漫游</button>
+			  <input type="text" id="where" value = ""/>
+			<!--水面设置-->
+
+			<button class="button" id="btnAddWaterByBoundary" onclick="addWaterByBoundary()">通过构造点添加水面</button>
+			<button class="button-short" id="btnSetLevel" onclick="setLevel()">水面下降</button>
+			<button class="button-short" id="btnRemoveEffect" onclick="removeEffect()">去除水面效果</button>
+		</div>
+		<div class='bf_demo_radios'>  <!--天空背景设置-->
+
+			<input type="radio" id="option-1" name="mode" class="bf_demo_radio" checked />
+			<label for="option-1" onclick="monochromeBackground()"></label>
+			<span class="bf_demo_option_text">单色背景</span>
+			<input type="radio" id="option-2" name="mode" class="bf_demo_radio" />
+			<label for="option-2" onclick="gradientBackgroundColor()"></label>
+			<span class="bf_demo_option_text">渐变色背景</span>
+			<input type="radio" id="option-3" name="mode" class="bf_demo_radio" />
+			<label for="option-3" onclick="setBlueSky()"></label>
+			<span class="bf_demo_option_text">蓝天背景</span>
+			<input type="radio" id="option-4" name="mode" class="bf_demo_radio" />
+			<label for="option-4" onclick="setCloudySky()"></label>
+			<span class="bf_demo_option_text">多云背景</span>
+			<input type="radio" id="option-5" name="mode" class="bf_demo_radio" />
+			<label for="option-5" onclick="setGalaxySky()"></label>
+			<span class="bf_demo_option_text">星空背景</span>
+			<input type="radio" id="option-6" name="mode" class="bf_demo_radio" />
+			<label for="option-6" onclick="setCustomizedSkyBox()"></label>
+			<span class="bf_demo_option_text">自定义天空盒</span>
+		</div>
+
+	</div>
+    <div id="domId"></div>
+    <script src="https://static.bimface.com/api/BimfaceSDKLoader/BimfaceSDKLoader@latest-release.js"></script>
+	<!-- 加载模型模块-->
+	<!--<script src = "BIMface_start.js">//模型加载 </script>-->
+	  <script>let viewToken = 'a9e8b60de8684f3e9de235240bfcffa3';
+	  let viewer3D;
+	  let app;
+	  let viewAdded = false;
+	  let map;
+	  // 配置JSSDK加载项
+	  window.onload = function() {
+		  let loaderConfig = new BimfaceSDKLoaderConfig();
+		  loaderConfig.viewToken = viewToken;
+		  BimfaceSDKLoader.load(loaderConfig, successCallback, failureCallback);
+	  }
+	  // 加载成功回调函数
+	  function successCallback(viewMetaData) {
+		  let dom4Show = document.getElementById('domId');
+		  // 设置WebApplication3D的配置项
+		  let webAppConfig = new Glodon.Bimface.Application.WebApplication3DConfig();
+		  webAppConfig.domElement = dom4Show;
+		  // 创建WebApplication3D，用以显示模型
+		  app = new Glodon.Bimface.Application.WebApplication3D(webAppConfig);
+		  app.addView(viewToken);
+		  viewer3D = app.getViewer();
+		  viewer3D.addEventListener(Glodon.Bimface.Viewer.Viewer3DEvent.ViewAdded, function () {
+			  viewAdded = true;
+		  	//自适应屏幕大小
+			  window.onresize = function () {
+				  viewer3D.resize(document.documentElement.clientWidth, document.documentElement
+						  .clientHeight - 40);
+			  }
+			  viewAdded = true;
+			  //地图部分配置
+			  let mapConfig = new Glodon.Bimface.Plugins.TileMap.MapConfig();
+			  mapConfig.viewer = viewer3D;
+			  // 设置模型载入的基点，即模型上某一特征点的世界坐标，可通过鼠标点击事件获取
+			  mapConfig.basePoint = {
+				  "x": -85689.088,
+				  "y": -62066.347
+			  };
+			  // 设置模型载入基点所对应的经纬度（WGS84）
+			  mapConfig.modelPosition = [110.128063, 31.37662];
+			  /*mapConfig.modelPosition = [121.62844633392, 29.840569498277];*/
+			  // 设置模型的旋转弧度值
+			  mapConfig.modelRotationZ = 0 * Math.PI / 180;
+			  // 设置模型零零标高对应的高程值，单位为米
+			  mapConfig.modelAltitude = 50;
+			  // 构造地图对象
+			  map = new Glodon.Bimface.Plugins.TileMap.Map(mapConfig);
+			  // 设置地图类型为天地图的影像底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+			  map.setMapSource({
+				  url: 'http://t0.tianditu.gov.cn/img_w/wmts?tk=f41f3a1a1026f16316a0c1ba7f4cb55',
+				  provider: 'Tianditu',
+				  credit: Glodon.Bimface.Common.Credit.Tianditu
+			  });
+			  // 渲染3D模型
+			  viewer3D.render();
+			  setCloudySky();
+			  addWaterByBoundary();
+			  addWaterByBoundary1();
+			  setTiandituSatellite();
+			  addMarker();
+			  addWaterByBoundary1();
+		  });
+
+	  }
+	  // 加载失败回调函数
+	  function failureCallback(error) {
+		  console.log(error);
+	  }</script>
+	<script>
+//***************************设置按钮文本改变程序********************
+      function setButtonText(btnId, text) {
+        let dom = document.getElementById(btnId);
+        if (dom != null && dom.nodeName == "BUTTON") {
+          dom.innerText = text;
+        }
+      }
+// ************************** 隔离 **************************
+let isIsolationActivated = false;
+function isolateComponents() {
+  if (!isIsolationActivated) {
+    // 设置隔离选项，指定其他构件为半透明状态
+    let makeOthersTranslucent = Glodon.Bimface.Viewer.IsolateOption.MakeOthersTranslucent;
+    // 调用viewer3D.method，隔离楼层为"F2"的构件
+    viewer3D.getModel().isolateComponentsByObjectData([{"levelName":"F2"}], makeOthersTranslucent);//括号内为层数 但是前面的levelName引用方法未知
+    // 渲染三维模型
+    viewer3D.render(); 
+    // 修改按钮的文字内容
+    setButtonText("btnIsolation", "取消隔离");
+  } else {
+    // 清除隔离
+    viewer3D.getModel().clearIsolation();
+    // 渲染三维模型
+    viewer3D.render();
+    // 修改按钮的文字内容
+    setButtonText("btnIsolation", "构件隔离");
+  }
+  isIsolationActivated = !isIsolationActivated;
+}
+// ************************** 定位 **************************
+let isZoomToSelectionActivated =false;
+function zoomToSelectedComponents(){
+	if (!isZoomToSelectionActivated){
+		  viewer3D.getModel().addSelectedComponentsById(["271431"]);//数字为构建编号
+		   viewer3D.zoomToSelectedComponents();
+		   viewer3D.getModel().clearSelectedComponents();
+		   setButtonText("btnZoomToSelection", "回到主视角");
+	}
+	else {
+		viewer3D.setView(Glodon.Bimface.Viewer.ViewOption.Home);
+		setButtonText("btnZoomToSelection", "构件定位");
+	}
+}
+// ************************** 着色 **************************
+let isOverrideActivated = false;
+function overrideComponents(){
+  if (!isOverrideActivated) {
+    // 新建color对象，指定关注构件被染色的数值
+    let color = new Glodon.Web.Graphics.Color("#55ffff", 0.5); //("颜色"，透明度)
+    // 对关注构件进行着色
+    viewer3D.overrideComponentsColorById(["389601"], color);//(["构建编号"]，color)
+    viewer3D.render();
+    setButtonText("btnOverrideColor", "清除着色");
+  } else {
+    // 清除构件着色
+    viewer3D.getModel().clearOverrideColorComponents();
+    viewer3D.render();
+    setButtonText("btnOverrideColor", "构件着色");
+  }
+  isOverrideActivated = !isOverrideActivated;
+}
+
+//*************************模型旋转********************
+      let isAutoRotateActivated = false;
+	  let number1 
+      function startAutoRotate() {
+        if (!isAutoRotateActivated) {
+          // 开始场景旋转
+		  number1 = document.getElementById("number").value //获得输入的旋转速度
+          viewer3D.startAutoRotate(number1);				//模型旋转代码
+          setButtonText("btnStartAutoRotate", "结束旋转场景");
+        } else {
+          // 结束场景旋转
+          viewer3D.stopAutoRotate();						//模型停止旋转代码
+          setButtonText("btnStartAutoRotate", "开始旋转场景");
+        }
+        isAutoRotateActivated = !isAutoRotateActivated;
+      }
+
+//*************************强调部件***************
+		 let isBlinkActivated = false; 
+		 function blinkComponents() {
+			 if (!isBlinkActivated) {
+				  let blinkColor = new Glodon.Web.Graphics.Color("#B22222", 0.8);  //设置闪烁颜色 前为颜色后为透明度
+				  //打开闪烁开关
+				   viewer3D.enableBlinkComponents(true);
+				   //设置 闪烁的构件编号
+				    viewer3D.getModel().addBlinkComponentsById(["389617"]);
+			 // 设置强调状态下的颜色
+			        viewer3D.getModel().setBlinkColor(blinkColor);
+			          // 设置强调状态下的频率
+			        viewer3D.getModel().setBlinkIntervalTime(500);
+					//模型运行
+			        viewer3D.render();
+			        setButtonText("btnBlinkComponent", "清除强调");
+			 }
+			 else {
+			           // 清除构件强调
+			           viewer3D.getModel().clearAllBlinkComponents();
+			           viewer3D.render();
+			           setButtonText("btnBlinkComponent", "构件强调");
+			         }
+			         isBlinkActivated = !isBlinkActivated;
+			       }
+		 
+     // ************************** 状态 **************************
+			  let state;
+			  function getCurrentState(){
+				// 保存当前模型浏览状态
+				state = viewer3D.getCurrentState(); 
+			  }
+		  function setState(){
+			if (state != null) {
+			  // 恢复模型浏览状态
+			  viewer3D.setState(state);
+			  viewer3D.render();
+			} else {
+			  window.alert("请先保存一个模型浏览状态！");
+			}
+		  }
+		  
+		  
+// ************************** 路径漫游 **************************
+		      let walkThrough = null;
+		        function createWalkThrough() {
+		          if (walkThrough == null) {
+		            // 构造路径漫游配置wtConfig
+		            let walkThroughConfig = new Glodon.Bimface.Plugins.Walkthrough.WalkthroughConfig();
+		            // 设置路径漫游配置匹配的viewer对象
+		            walkThroughConfig.viewer = viewer3D;
+		            // 构造路径漫游对象
+		            walkThrough = new Glodon.Bimface.Plugins.Walkthrough.Walkthrough(walkThroughConfig);
+		          }
+		        }
+		  
+		        function addKeyFrame() {
+		          createWalkThrough();
+		          //添加关键帧
+		          walkThrough.addKeyFrame(); 
+		        }
+		  
+		        function playWalkThrough() {
+		          if (walkThrough != null) {
+		            // 设置播放时间为5秒
+		            walkThrough.setWalkthroughTime(5);
+		            // 设置关键帧事件
+		            walkThrough.setKeyFrameCallback(kfCallback);
+		            // 播放路径漫游
+		            walkThrough.play();
+		          } else {
+		            window.alert("Please add keyframes first.");
+		          }
+		        }
+		  let  number2=document.getElementById("where")
+		        function kfCallback(idx) {
+		          switch (idx) {
+		            case 0:
+		              break;
+		            case 1:
+		              console.log('Hello, BIM!');
+					 number2.value = "第一个关键帧";
+							console.log()
+		              break;
+					case 2:
+					 number2.value = "第er个关键帧"
+					 break;
+		          }
+		        }
+
+// ************************** 天空的背景设置 **************************
+function monochromeBackground() {
+	if (skyBoxManager) {
+		skyBoxManager.enableSkyBox(false);
+	}
+	// 设置单色景色
+	let monochrome = new Glodon.Web.Graphics.Color(214, 224, 235, 1);
+	viewer3D.setBackgroundColor(monochrome);
+	viewer3D.render();
+}
+
+
+let isSolidBackgroundColorActivated = false;
+
+function gradientBackgroundColor() {
+	if (skyBoxManager) {
+		skyBoxManager.enableSkyBox(false);
+	}
+	// 设置渐变背景色
+	let color1 = new Glodon.Web.Graphics.Color("#BFEFFF", 0.8);
+	let color2 = new Glodon.Web.Graphics.Color("#949494", 0.8);
+	viewer3D.setBackgroundColor(color1, color2);
+	viewer3D.render();
+}
+
+
+// 构造天空盒管理器
+let skyBoxManager = null;
+function initSkyBox() {
+	if (skyBoxManager) {
+		return;
+	}
+	// 构造天空盒管理器配置项，并指定Viewer、Option参数
+	let skyBoxManagerConfig = new Glodon.Bimface.Plugins.SkyBox.SkyBoxManagerConfig();
+	skyBoxManagerConfig.viewer = viewer3D;
+	// 设置自定义天空盒的图片资源
+	skyBoxManagerConfig.customizedImage = {
+		front: "https://static.bimface.com/attach/0d178c31584d432f93b3df90832d6ba1_EnvMap_posz.jpg",
+		back: "https://static.bimface.com/attach/c02b7114af6d4966b3f1fd7d483fcdd9_EnvMap_negz.jpg",
+		left: "https://static.bimface.com/attach/6c2f5045467b4c51a4e506524e74a65c_EnvMap_negx.jpg",
+		right: "https://static.bimface.com/attach/ec541f626f194a979d49ec5f52ca32bb_EnvMap_posx.jpg",
+		top: "https://static.bimface.com/attach/01700a9a6f7542af8df76bc923b065b9_EnvMap_posy.jpg",
+		bottom: "https://static.bimface.com/attach/031a2a1a51374fc88fe8acf1d490b7c0_EnvMap_negy.jpg"
+	}
+	skyBoxManagerConfig.style = Glodon.Bimface.Plugins.SkyBox.SkyBoxStyle.CloudySky;
+	// 构造天空盒管理器，构造完成后，场景背景即发生变化
+	skyBoxManager = new Glodon.Bimface.Plugins.SkyBox.SkyBoxManager(skyBoxManagerConfig);
+}
+
+// 开启蓝天的天空盒效果
+function setBlueSky() {
+	initSkyBox();
+	// 将天空盒效果设置为蓝天
+	skyBoxManager.setStyle(Glodon.Bimface.Plugins.SkyBox.SkyBoxStyle.BlueSky);
+	skyBoxManager.enableSkyBox(true);
+}
+
+// 开启多云的天空盒效果
+function setCloudySky() {
+	initSkyBox();
+	// 将天空盒效果设置为多云
+	skyBoxManager.setStyle(Glodon.Bimface.Plugins.SkyBox.SkyBoxStyle.CloudySky);
+	skyBoxManager.enableSkyBox(true);
+}
+
+// 开启星空的天空盒效果
+function setGalaxySky() {
+	initSkyBox();
+	// 将天空盒效果设置为星空
+	skyBoxManager.setStyle(Glodon.Bimface.Plugins.SkyBox.SkyBoxStyle.Galaxy);
+	skyBoxManager.enableSkyBox(true);
+}
+
+// 构造自定义天空盒
+function setCustomizedSkyBox() {
+	initSkyBox();
+	// 将天空盒效果设置为自定义效果
+	skyBoxManager.setStyle(Glodon.Bimface.Plugins.SkyBox.SkyBoxStyle.Customized);
+	skyBoxManager.enableSkyBox(true);
+}
+
+//********************水面效果设置********************
+function failureCallback(error) {
+	console.log(error);
+}
+
+var waterEffect = null;
+var waterBoundary;
+var water1;
+var water2;
+var water3
+var WaterComponents = [{ modelId: "1908967217997920", objectIds: ["311979", "312471"] }];
+var pt1 = {
+	x: 16000,
+	y: 12133,
+	z: 2000
+};
+var pt2 = {
+	x: 16000,
+	y: 0,
+	z: 2000
+};
+var pt3 = {
+	x: -8000,
+	y: 0,
+	z: 2000
+};
+var pt4 = {
+	x: -8000,
+	y: 12133,
+	z: 2000
+};
+var pt5 = {
+	x: 7000,
+	y:-10000,
+	z: 1000
+};
+var pt6 = {
+	x: 7000,
+	y: 0,
+	z: 1000
+};
+var pt7 = {
+	x: -8000,
+	y: 0,
+	z: 1000
+};
+var pt8 = {
+	x: -8000,
+	y: -10000,
+	z: 1000
+};
+var waterBoundary = [pt1, pt2, pt3, pt4];
+var waterBoundary2 = [pt5, pt6, pt7, pt8];
+
+var isWaterAddedByComponents = false;
+
+var isWaterAddedByBoundary = false;
+
+//上游水位
+function addWaterByBoundary() {
+	if (!isWaterAddedByBoundary) {
+		var waterEffectConfig2 = new Glodon.Bimface.Plugins.Animation.WaterEffectConfig();
+		//通过构造点添加水面效果（ids、boundary选填一项，若都填写则默认ids有效）
+		waterEffectConfig2.boundary = waterBoundary;
+		waterEffectConfig2.viewer = viewer3D;
+		// 构造水面效果类，并设置效果
+		water2 = new Glodon.Bimface.Plugins.Animation.WaterEffect(waterEffectConfig2);
+		var waterColor = new Glodon.Web.Graphics.Color('#23A9F2', 0.4);
+		water2.setColor(waterColor);
+		water2.setScale(2);
+		water2.setXDirection(2);
+		water2.setYDirection(2);
+		isWaterAddedByBoundary = true;
+	}
+}
+//下游水位
+function addWaterByBoundary1() {
+	if (isWaterAddedByBoundary) {
+		var waterEffectConfig3 = new Glodon.Bimface.Plugins.Animation.WaterEffectConfig();
+		//通过构造点添加水面效果（ids、boundary选填一项，若都填写则默认ids有效）
+		waterEffectConfig3.boundary = waterBoundary2;
+		waterEffectConfig3.viewer = viewer3D;
+		// 构造水面效果类，并设置效果
+		water3 = new Glodon.Bimface.Plugins.Animation.WaterEffect(waterEffectConfig3);
+		var waterColor = new Glodon.Web.Graphics.Color('#23A9F2', 0.4);
+		water3.setColor(waterColor);
+		water3.setScale(2);
+		water3.setXDirection(2);
+		water3.setYDirection(2);
+		isWaterAddedByBoundary = true;
+	}
+}
+
+var waterOffset = false;
+function setLevel() {
+	if (!water1 && !water2) {
+		return;
+	} else {
+		if (!waterOffset) {
+			if (water1) {
+				water1.setOffset(-200);
+			}
+			if (water2) {
+				water2.setOffset(-200);
+			}
+			setButtonText("btnSetLevel", "水面上升");
+		} else {
+			if (water1) {
+				water1.setOffset(200);
+			}
+			if (water2) {
+				water2.setOffset(200);
+			}
+			setButtonText("btnSetLevel", "水面下降");
+		}
+		waterOffset = !waterOffset;
+	}
+}
+
+// 移除水面效果
+function removeEffect() {
+	if (isWaterAddedByComponents) {
+		water1.destroy();
+		water1 = null;
+		viewer3D.showComponentsById(WaterComponents);
+		viewer3D.render();
+		isWaterAddedByComponents = false;
+	}
+	if (isWaterAddedByBoundary) {
+		water2.destroy();
+		water2 = null;
+		isWaterAddedByBoundary = false;
+	}
+	if (waterOffset) {
+		waterOffset = false;
+		setButtonText("btnSetLevel", "水面下降");
+	}
+}
+
+//**************地图部分函数**************
+// 设置地图类型为天地图的影像底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+function setTiandituSatellite() {
+	map.setMapSource({
+		url: 'http://t0.tianditu.gov.cn/img_w/wmts?tk=f41f3a1a1026f16316a0c1ba7f4cb557',
+		provider: 'Tianditu',
+		credit: Glodon.Bimface.Common.Credit.Tianditu
+	});
+}
+
+// 设置地图类型为天地图的矢量底图，天地图key可在http://lbs.tianditu.gov.cn/server/MapService.html申请
+/*let markerPos = {"x": -2040, "y": 53, "z": 3465};
+let markerPos = {"x":949, "y": -127, "z": 3465}
+let markerPos = {"x":800, "y": -3182, "z": 2274};;*/
+
+let is3DMarkerPlaced = false;
+function addMarker() {
+	if (is3DMarkerPlaced) {
+		return;
+	}
+	// 构造三维标签容器配置markerContainerConfig
+	let markerContainerConfig = new Glodon.Bimface.Plugins.Marker3D.Marker3DContainerConfig();
+	// 设置markerContainerConfig匹配的viewer对象
+	markerContainerConfig.viewer = viewer3D;
+	// 构造三维标签容器markerContainer
+	let markerContainer = new Glodon.Bimface.Plugins.Marker3D.Marker3DContainer(markerContainerConfig);
+	// 构造三维标签配置项
+	let markerConfig = new Glodon.Bimface.Plugins.Marker3D.Marker3DConfig();
+	// 为标签指定图片路径
+	markerConfig.src = "http://static.bimface.com/resources/3DMarker/warner/warner_red.png";
+	// 构造点位，并指定为标签的插入点
+	markerPos = {"x":949, "y": -127, "z": 3465};
+	markerConfig.worldPosition = markerPos;
+	// 指定标签大小
+	markerConfig.size =30;
+	// 构造三维标签
+	let marker = new Glodon.Bimface.Plugins.Marker3D.Marker3D(markerConfig);
+
+	//第二个标签
+	let markerConfig1 = new Glodon.Bimface.Plugins.Marker3D.Marker3DConfig();
+	markerConfig1.src = "http://static.bimface.com/resources/3DMarker/warner/warner_red.png";
+	markerPos1 = {"x": -2040, "y": 53, "z": 3465};
+	markerConfig1.worldPosition = markerPos1;
+	markerConfig1.size =30;
+	let marker1 = new Glodon.Bimface.Plugins.Marker3D.Marker3D(markerConfig1);
+	markerContainer.addItem(marker1);
+
+	//第二个标签
+	let markerConfig2 = new Glodon.Bimface.Plugins.Marker3D.Marker3DConfig();
+	markerConfig2.src = "http://static.bimface.com/resources/3DMarker/warner/warner_red.png";
+	markerPos2 = {"x":800, "y": -3182, "z": 2274};
+	markerConfig2.worldPosition = markerPos2;
+	markerConfig2.size =30;
+	let marker2 = new Glodon.Bimface.Plugins.Marker3D.Marker3D(markerConfig2);
+	markerContainer.addItem(marker2);
+
+	//第三个标签
+	let markerConfig3 = new Glodon.Bimface.Plugins.Marker3D.Marker3DConfig();
+	markerConfig3.src = "http://static.bimface.com/resources/3DMarker/warner/warner_red.png";
+	markerPos3 = {"x":-388, "y": 2740, "z": 2030};
+	markerConfig3.worldPosition = markerPos3;
+	markerConfig3.size =30;
+	let marker3 = new Glodon.Bimface.Plugins.Marker3D.Marker3D(markerConfig3);
+	markerContainer.addItem(marker3);
+
+	// 添加标签的点击事件
+	marker.onClick(function() {
+		window.alert('这是位移监测点');
+	});
+	marker1.onClick(function() {
+		window.alert('这是沉降监测点');
+	});
+	marker2.onClick(function() {
+		window.alert('这是偏移监测点');
+	});
+	marker3.onClick(function() {
+		window.alert('这是渗流监测点');
+	});
+	// 将三维标签添加至容器内
+	markerContainer.addItem(marker);
+	is3DMarkerPlaced = true;
+}
+/*let markerPos = {"x": 6660, "y": 6047, "z": 3465};*/
+
+	</script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+package MTBIM;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MTD {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MTD.class, args);
+    }
+
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../浏览器下载文件/CSDN-GitChat-DL4j-Course-master/Gitchat.iml" filepath="$PROJECT_DIR$/../../浏览器下载文件/CSDN-GitChat-DL4j-Course-master/Gitchat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MTBIM.iml" filepath="$PROJECT_DIR$/MTBIM.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../maven-ruozhi/maven-ruozhi.iml" filepath="$PROJECT_DIR$/../maven-ruozhi/maven-ruozhi.iml" />
+    </modules>
+  </component>
+</project>

@@ -110,12 +110,21 @@
             <artifactId>deeplearning4j-core</artifactId>
             <version>1.0.0-M2.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-core -->
+<!--        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>1.0.0-beta</version>
+        </dependency>-->
+
         <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-nlp -->
         <dependency>
             <groupId>org.deeplearning4j</groupId>
             <artifactId>deeplearning4j-nlp</artifactId>
             <version>1.0.0-M2.1</version>
         </dependency>
+
+
         <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-ui -->
         <!--DL4J的网页UI-->
         <dependency>
@@ -148,6 +157,8 @@
             <version>1.0.0-M2</version>
             <scope>test</scope>
         </dependency>
+
+
 
 
 

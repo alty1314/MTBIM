@@ -1,9 +1,6 @@
 server:
   port: 80
 
-
-
-
 spring:
   datasource:
     druid:
@@ -11,7 +8,6 @@ spring:
       url: jdbc:mysql://127.0.0.1:3306/mt?serverTimezone=UTC
       username: root
       password: 123456789o
-
 
 #表的前缀设置
 mybatis-plus:

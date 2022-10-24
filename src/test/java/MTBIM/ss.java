@@ -15,22 +15,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.datavec.api.records.reader.RecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
-import org.datavec.api.split.FileSplit;
-
-
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 
 
 import org.deeplearning4j.datasets.iterator.utilty.ListDataSetIterator;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.api.UIServer;
-import org.deeplearning4j.ui.model.stats.StatsListener;
-import org.deeplearning4j.ui.model.storage.FileStatsStorage;
-import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
 import org.junit.jupiter.api.Test;
+
+
 import org.nd4j.evaluation.regression.RegressionEvaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -43,11 +35,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.sql.DataSource;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -127,8 +120,8 @@ public class ss {
     public void echart(){
         QueryWrapper<mtd> wrapper = new QueryWrapper<>();
         wrapper.select("BL","time","temperature");
-        wrapper.eq("BL","D1");
-
+        wrapper.eq("BL","SR1");
+        wrapper.orderByDesc(true,"time"); //Desc降序，重上往下，Asc升序
         IPage page = new Page(1,30);
         IPage iPage = bookBao.selectPage(page, wrapper);
 
@@ -136,7 +129,9 @@ public class ss {
         List<String> a = new ArrayList<>();
 
         HashMap<String, Object> map = new HashMap<>();
-        System.out.println("哪里"+page.getRecords());
+
+        List<mtd> records = page.getRecords();
+        System.out.println(page.getRecords().getClass()+ "========="+records);
     }
     @Test
     public void upload(){
@@ -555,7 +550,7 @@ public class ss {
             trainIter.setPreProcessor(scaler);
             System.out.println("zheshi训练集合===="+scaler.getClass());
             testIter.setPreProcessor(scaler);
-            MultiLayerNetwork mlp =MtDService1.model();
+            MultiLayerNetwork mlp =MtDService1.model(13,10,1);
             mlp.setListeners(new ScoreIterationListener(1));
             for( int i = 0; i < 200; ++i ){
                 mlp.fit(trainIter);
@@ -564,6 +559,8 @@ public class ss {
             //利用 Deeplearning4j 内置的回归模型分析器进行模型评估
             RegressionEvaluation eval = mlp.evaluateRegression(testIter);
             System.out.println(eval.stats());
+            String stats = eval.stats();
+            System.out.println(stats);
             testIter.reset();
             //输出验证集的真实值和预测值
             int s = 0;
@@ -601,29 +598,175 @@ public class ss {
         }
 
     }
+
     @Test
-    void tetst(){
-        //不行啊
-        RecordReader recordReader = new CSVRecordReader(0,',');
-        try {
-            recordReader.initialize(new FileSplit(new File("C:\\Users\\XJH\\Desktop\\house_price1.csv")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    void ssssdas()   {
+        //从后台获取数据
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("bl","SR1");
+        List<mtd> select = bookBao.selectByMap(map);
+        System.out.println(select.size());
+        //时间计算测试
+        /*System.out.println(select.get(0).getTime());
+        System.out.println(select.get(1).getTime());
+        int a = MtDService1.timeCALC(select.get(2).getTime(),select.get(1).getTime());
+        System.out.println(a);
+*/
+        double[][] dataList = new double[select.size()][6];
+
+
+        for (int i = 0; i < select.size(); i++) {
+            dataList[i][0] = select.get(i).getTemperature(); //温度
+            dataList[i][1] = Math.pow(select.get(i).getTemperature(),2) ; //温度的平方
+            int time1 = MtDService1.timeCALC(select.get(i).getTime(),select.get(0).getTime()); //时间长度，现在时间-最初时间
+            dataList[i][2] = time1;             //时间
+            dataList[i][3] = Math.log(time1+1) / Math.log(Math.E);     //ln（t+1）
+            dataList[i][4] = select.get(i).getWaterlevel();     //水位计算
+            dataList[i][5] = select.get(i).getStable();        //要计算的内容
+           /* System.out.println("第"+i+"个");
+            for (int j = 0; j < 6; j++) {
+                System.out.print(dataList[i][j] + " ");
+            }*/
         }
-        DataSetIterator iterator = new RecordReaderDataSetIterator(recordReader,507,13,506);
-        DataSet allData = iterator.next();
-        allData.shuffle();
-        System.out.println(allData);
+
+        //神经网络的部分参数设置参数
+        final int batchSize = 100;
+        final long SEED = 1234L;
+        final int trainSize = 900;
+
+        //要训练的数据和对数据分类设置
+        //这个是输入的标签
+        double[][] featureArray2 = new double[1000][5];
+        //这是输出的标签
+        double[][] labelArray2 = new double[1000][1];
+
+        for (int i = 0; i <1000 ; i++) {
+            //这个是输入的标签
+            double[] featureArray = new double[5];
+            //这是输出的标签
+            double[] labelArray = new double[1];
+            for (int j = 0; j < 5; j++) {
+                featureArray2[i][j] = dataList[i][j];
+            }
+            labelArray2[i][0] = dataList[i][5];
+        }
+        INDArray featureNDArray = Nd4j.create(featureArray2);
+        INDArray labelNDArray = Nd4j.create(labelArray2);
+        DataSet allData = new DataSet(featureNDArray,labelNDArray);
+        //System.out.println(allData);
+
+        allData.shuffle(SEED);
+
+        SplitTestAndTrain split = allData.splitTestAndTrain(trainSize);        //自带的随机划分api
+        DataSet dsTrain = split.getTrain();//训练
+        DataSet dsTest = split.getTest();//测试
+
+        //训练集
+        DataSetIterator trainIter = new ListDataSetIterator(dsTrain.asList() , batchSize);
+        System.out.println("这是训练集"+trainIter);
+        //测试集
+        DataSetIterator testIter = new ListDataSetIterator(dsTest.asList() , batchSize);
+        System.out.println("这是训练集"+trainIter.getClass());
+
+        //归一化处理
+        DataNormalization scaler = new NormalizerMinMaxScaler(0,1);
+        scaler.fit(trainIter);
+        scaler.fit(testIter);
+
+        trainIter.setPreProcessor(scaler);
+
+        testIter.setPreProcessor(scaler);
+
+        MultiLayerNetwork mlp =MtDService1.model(5,6,1);    //输入口，隐藏层，输出层
+
+        mlp.setListeners(new ScoreIterationListener(1));
+        for( int i = 0; i < 200; ++i ){
+            mlp.fit(trainIter);
+            trainIter.reset();
+        }
+        RegressionEvaluation eval = mlp.evaluateRegression(testIter);
+        System.out.println(eval.stats());
+        testIter.reset();
+        //输出验证集的真实值和预测值
+        int s = 0;
+        while( testIter.hasNext() ){
+            s = s+1;
+            System.out.println("这是测试"+s+"个"+testIter.next().getLabels());
+        }
+        testIter.reset();
+
+        System.out.println("==============="+mlp.output(testIter).getDouble(1,1));
+        /*for (int i = 0; i < output.length(); i++) {
+            output.getDouble(i,1);
+        }*/
+        //输入新的测试集合
+        double[][] inList = new double[1][5];
+        double[][] outList = new double[1][1];
+        for (int i = 0; i < 5; i++) {
+            inList[0][i] = dataList[1][i];
+        }
+        outList[0][0] = dataList[0][5];
+
+        INDArray featureNDArray3 = Nd4j.create(inList);
+        INDArray labelNDArray3 = Nd4j.create(outList);
+        DataSet testData = new DataSet(featureNDArray3,labelNDArray3);
+        DataSetIterator testIter2 = new ListDataSetIterator(testData.asList() , batchSize);
+
+        scaler.fit(testIter2);
+        testIter2.setPreProcessor(scaler);
+
+        System.out.println(mlp.output(testIter2));
+        System.out.println(outList[0][0]);
     }
     @Test
-    void ssssdas() throws InterruptedException {
-        UIServer uiServer = UIServer.getInstance();
-        //StatsStorage statsStorage = new FileStatsStorage(new File("D:\\javacode\\MTBIM", "ui-stats.dl4j"));
-        // 将StatsStorage实例附加到UI：这允许StatsStorage的内容可视化
-       // uiServer.attach(statsStorage);
-        //Thread.sleep(99999);
+    void sdadwq(){
+        List<yuzhi> allData;
+        allData = yuzhi_interface.selectList(null);
+        Map<String, Object> map = new HashMap<>();
+        map.put("allData",allData);
+        System.out.println(map.get("allData"));
+
+        List<yuzhi> oneData = MtDService1.yuzhi_getOneData("SR1","null");
     }
+    @Test
+    void asdasddw(){
+        String currentPage = "SR1";
+        String pageSize = "stable";
+        Map<String, Object> map2 = MtDService1.yuzhi_cal(currentPage, pageSize);
+        yuzhi yuzhi_insert = new yuzhi();
+        yuzhi_insert.setName(currentPage);
+        yuzhi_insert.setA((Double) map2.get("zero_five"));
+        yuzhi_insert.setB((Double) map2.get("four_five"));
+        yuzhi_insert.setC((Double) map2.get("ninety_per"));
+        yuzhi_insert.setD((Double) map2.get("seventy_per"));
+        yuzhi_insert.setE((Double) map2.get("fifty_per"));
+
+        Map<String, Object> map3 =new HashMap<>();
+        map3.put("name",currentPage);
+        if (yuzhi_interface.selectByMap(map3) != null){
+            UpdateWrapper<yuzhi> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq("name",currentPage);
+            yuzhi_interface.update(yuzhi_insert, updateWrapper);
+        }
+    }
+    @Test
+    void aawwqeq(){
+        Map<String,double[]> map1 = MtDService1.safe_all("DP", "displacement", java.sql.Date.valueOf("2021-12-29"));
+        Map<String,double[]> map2 = MtDService1.safe_all("SR", "stable", java.sql.Date.valueOf("2021-12-29"));
+        Map<String,double[]> map3 = MtDService1.safe_all("ST", "settling", java.sql.Date.valueOf("2021-12-29"));
+        Map<String,double[]> map4 = MtDService1.safe_all("FL", "flow", java.sql.Date.valueOf("2021-12-29"));
+        double[] s1 =  map1.get("data");
+        double[] s2 =  map2.get("data");
+        double[] s3 =  map3.get("data");
+        double[] s4 =  map4.get("data");
+        for (int i = 0; i < 5; i++) {
+            System.out.println("这是s1  "+s1[i]);
+            System.out.println("这是s2  "+s2[i]);
+            System.out.println("这是s3  "+s3[i]);
+            System.out.println("这是s4  "+s4[i]);
+        }
+
+    }
+
 }
 

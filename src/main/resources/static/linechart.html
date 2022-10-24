@@ -29,7 +29,6 @@
                 height="250"
                 border
                 style="width: 800px">
-
             <!--<el-table-column
                     prop="id"
                     label="id"
@@ -40,7 +39,6 @@
                     label="设备名称"
                     width="150">
             </el-table-column>
-
             <el-table-column
                     prop="time"
                     label="时间"
@@ -51,8 +49,6 @@
                     label="温度"
                     width="200">
             </el-table-column>
-
-
         </el-table>
     </template>
     </div>
@@ -71,7 +67,6 @@
   var vue =new Vue({
       el:"#demo"
       ,created(){
-
       }
       ,mounted(){
           this.reprint();
@@ -82,13 +77,11 @@
               setTimeout(this.chart,500);
               this.chart();
           },
-
           clean(){      //情况div中的图标并且释放资源，不然后续无法画图
               document.getElementById('main').innerHTML = ""
               document.getElementById('main').removeAttribute("_echarts_instance_");
               console.log("图表页面清楚完成")
           },
-
            getAll() {
                axios.get("/echart").then((res) => {    //服务器打开的时候的localhost会变化，这点需要注意
                   console.log(res.data);
@@ -123,16 +116,14 @@
                   console.log("温度数据"+this.tableData);
                   return new Promise(null);
               })
-
           },
-          
           chart() {
               let myChart = echarts.init(document.getElementById('main'))
               console.log("====================>")
-
+              console.log("========this.tableData>"+this.tableData)
               let option = {
                   title: {
-                      text: 'ECharts 入门示例'
+                      text: this.name,
                   },
                   tooltip: {},
                   toolbox: {
@@ -140,19 +131,24 @@
                           saveAsImage: {}
                       }
                   },
+                  encode: {
+                      x: 'Year',
+                      y: 'Income',
+                      itemName: 'Year',
+                      tooltip: ['Income']
+                  },
                   legend: {
-                      data: ['温度',]
+                      data: [this.el_input,]
                   },
                   xAxis: {
-                      type: 'time',
-
+                      type: 'category',
                   },
                   yAxis: {
                       type: 'value',
                   },
                   series: [
                       {
-                          name:'销量',
+                          name:'运行数据',
                           data: this.tableData,
                           type: 'line'
                       }
@@ -168,16 +164,16 @@
               mtdData:[],
               xdata: [],
               ydata: [],
-              el_input:'D1',
+              el_input:'SR1',
               pagination:{
                   currentPage:1,
                   pageSize:30,
               },
               param:"",
               userdata:[],
+              name:"运行数据内容",
           }
       }
-
   })
 
 </script>

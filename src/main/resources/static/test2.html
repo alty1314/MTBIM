@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <meta charset="UTF-8">
+  <title>线性图</title>
+  <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="plugins/elementui/index.css">
+  <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/echarts.js"></script>
+</head>
+<body>
+<div id="demo">
+  <el-input v-model="el_input" placeholder="请输入内容" style="width: 200px;"></el-input>
+  <el-button @click="reprint()" class="dalfBut" style="width: 200px;">选择数据类型</el-button>
+  <el-button @click="chart()" class="dalfBut" style="width: 200px;" >数据图展示</el-button>
+  <el-button @click="clean()" class="dalfBut" style="width: 200px;">清除当前页面</el-button>
+  <div id="main" style="width:1000px;height:400px;"></div>
+  </div>
+<script src="js/vue.js"></script>
+
+<script src="plugins/elementui/index.js"></script>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+
+<script src="js/axios-0.18.0.js"></script>
+
+<script type="text/javascript">
+  var vue =new Vue({
+    el:"#demo"})
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>安全评估</title>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="plugins/elementui/index.css">
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+<div id="demo">
+    <el-button @click="reprint()" class="dalfBut" style="width: 200px;">清除当前页面</el-button>
+    <div id="main"
+         style="width:1000px; height:700px;left: 100px" ></div>
+</div>
+
+<!--script 区域-->
+<script src="js/vue.js"></script>
+<script src="plugins/elementui/index.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+<script src="js/echarts.js"></script>
+<script>
+/*    var all = 5;
+    var sr1 =0;
+    var sr11=0 ;
+    var sr12=0 ;
+    var sr13=0 ;
+    var sr14=0 ;
+    var st1 ;
+    var st11 ;
+    var st12 ;
+    var st13 ;
+    var st14 ;
+    var fl1 ;
+    var fl11 ;
+    var fl12 ;
+    var fl13 ;
+    var fl14 ;
+    var dp1 ;
+    var dp11 ;
+    var dp12 ;
+    var dp13 ;
+    var dp14 ;*/
+
+    var vue =new Vue({
+        el:"#demo"
+        ,created(){
+            this.reprint();
+
+        }
+        ,mounted(){
+
+            this.reprint();
+        }
+        ,methods:{
+            reprint(){
+                this.clean()
+                this.chart();
+            },
+            clean(){      //情况div中的图标并且释放资源，不然后续无法画图
+
+                document.getElementById('main').innerHTML = ""
+                document.getElementById('main').removeAttribute("_echarts_instance_");
+                console.log("图表页面清楚完成")
+            },
+            test(){
+                all = 60;
+                sr1 = this.data1[4];
+                sr11 = this.data1[0];
+                sr12 = this.data1[1];
+                sr13 = this.data1[2];
+                sr14 = this.data1[3];
+                console(this.data1[4])
+                },
+            chart(){
+                var myChart = echarts.init( document.getElementById('main'));
+                var option;
+                option = {
+                    tooltip: {
+                        trigger: 'item',
+                        triggerOn: 'mousemove'
+                    },
+                    series: [
+                        {
+                            type: 'tree',
+                            id: 0,
+                            name: '大坝安全评估系统',
+                            data: this.alldata,
+                            top: '10%',
+                            left: '8%',
+                            bottom: '22%',
+                            right: '20%',
+                            symbolSize: 15,
+                            edgeShape: 'polyline',
+                            edgeForkPosition: '63%',
+                            initialTreeDepth: 4,
+                            lineStyle: {
+                                width: 5
+                            },
+                            label: {
+                                backgroundColor: '#c7deec',
+                                position: 'left',
+                                verticalAlign: 'middle',
+                                align: 'right',
+                                "textStyle": {
+                                    "fontSize": 15}
+                            },
+                            leaves: {
+                                label: {
+                                    position: 'right',
+                                    verticalAlign: 'middle',
+                                    align: 'left'
+                                }
+                            },
+                            emphasis: {
+                                focus: 'descendant'
+                            },
+                            expandAndCollapse: true,
+                            animationDuration: 550,
+                            animationDurationUpdate: 750
+                        }
+                    ]
+                };
+                 myChart.setOption(option);
+            },
+           /* getdata(){
+                if(this.selectTime == '' || this.selectTime == null){
+                    this.$alert('', '时间输入有误', {
+                        confirmButtonText: '确定',
+                        callback: action => {
+                            this.$message({
+                                type: 'info',
+                                message: `action: ${ "请重新输入" }`
+                            });
+                        }
+                    });
+                }else{
+                    axios.get("/safe_cal/"+this.pagination.currentPage+"/"+this.pagination.pageSize+this.param).then((res)=>{    //服务器打开的时候的localhost会变化，这点需要注意
+                        console.log(res.data);
+                        this.data1 = res.data.data1
+                        this.data2 = res.data.data2
+                        this.data3 = res.data.data3
+                        this.data4 = res.data.data4
+                        this.data5 = res.data.data5
+                    })
+                }
+            }*/
+
+        }
+        ,data(){
+        return {
+            selectTime:'',      //要查询的时间
+            data1:[0.5,0.25,0.15,0.1,1.0],
+            data2:[0.5,0.25,0.15,0.1,1.0],
+            data3:[0.5,0.25,0.15,0.1,1.0],
+            data4:[0.5,0.25,0.15,0.1,1.0],
+            data5:60,
+            alldata:[{          //运行的数据
+                name: '大坝安全指数: '+"\n 结果："+"安全", value: all,
+                children: [
+                    {name: '位移评估'+ sr1+"\n 结果："+"安全",
+                        children: [
+                            { name: '主坝区1-1:'+sr11+" 结果："+"安全", value: sr11 },
+                            { name: '主坝区2-2'+sr12+" 结果："+"安全", value: sr12 },
+                            { name: '主坝区3-3'+sr13+" 结果："+"安全", value: sr13 },
+                            { name: '主坝区4-4'+sr14+" 结果："+"安全", value: sr14 },
+                        ]
+                    },
+                    {name: '渗流评估',
+                        children: [
+                            { name: '渗流区1-1', value: 8833 },
+                            { name: '渗流区2-2', value: 1732 },
+                            { name: '渗流区3-3', value: 1732 },
+                            { name: '渗流区4-4', value: 1732 },
+                        ]
+                    },
+                    {name: '沉降评估',
+                        children: [
+                            { name: '沉降区1-1', value: 8833 },
+                            { name: '沉降区2-2', value: 1732 },
+                            { name: '沉降区3-3', value: 1732 },
+                            { name: '沉降区4-4', value: 1732 },
+                        ]
+                    },
+                    {name: '变形评估',
+                        children: [
+                            { name: '倾斜计1-1', value: 8833 },
+                            { name: '倾斜计2-2', value: 1732 },
+                            { name: '倾斜计3-3', value: 1732 },
+                            { name: '倾斜计4-4', value: 1732 },
+                        ]
+                    },
+
+                ]
+            }],
+            }
+        }
+    })
+</script>
+</body>
+</html>

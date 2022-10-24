@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN”" xmlns:text-align="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>阈值查询与计算</title>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="plugins/elementui/index.css">
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .el-main{
+            text-align: center;
+        }
+        .el-table .warning-row {
+            background: #b9f1ff;
+        }
+        .el-table .success-row {
+            background: #c9f3b1;
+        }
+    </style>
+</head>
+<body>
+
+<div id="demo">
+    <el-container>
+        <el-main >阈值查询与计算</el-main>
+    </el-container>
+
+    <div id = "yuzhiDisplay">
+        <!--条件查询部件-->
+        <div class="filter-container" style="text-align: center">
+            <span><big><b>阈值查询: </b></big></span>
+            <span>设备名称 </span>
+            <el-input placeholder="设备名称" v-model="message1" style="width: 200px;" class="filter-item"></el-input>
+            <span>属性 </span>
+            <el-input placeholder="仪器" v-model="message2" style="width: 200px;" class="filter-item"></el-input>
+
+            <el-button @click="oneSelect()" class="dalfBut">单个查询</el-button>
+            <el-button @click="allSelect()" class="dalfBut">全部查询</el-button>
+        </div>
+    </div>
+
+    <template>
+        <el-table
+                :data="tableData"
+                height="250"
+                border
+                style="width: 100%"
+                :row-class-name="tableRowClassName">
+            <el-table-column
+                    prop="name"
+                    label="设备名称"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    prop="a"
+                    label="危险阈值"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    prop="b"
+                    label="风险阈值">
+            </el-table-column>
+            <el-table-column
+                    prop="c"
+                    label="异常值">
+            </el-table-column>
+            <el-table-column
+                    prop="d"
+                    label="正常">
+            </el-table-column>
+            <el-table-column
+                    prop="e"
+                    label="安全">
+            </el-table-column>
+        </el-table>
+    </template>
+    <div id = "yuzhiModify">
+        <div class="filter-container" style="text-align: center">
+        <span><big><b>阈值计算: </b></big></span>
+            <span>设备名称 </span>
+            <el-input placeholder="设备名称" v-model="eq_name" style="width: 200px;" class="filter-item"></el-input>
+            <span>属性 </span>
+            <el-input placeholder="属性" v-model="eq_bl" style="width: 200px;" class="filter-item"></el-input>
+            <el-button @click="reprint2()" class="dalfBut">计算阈值</el-button>
+            <el-button @click="open()" class="dalfBut">确定修改</el-button>
+        </div>
+        <template>
+            <el-table
+                    :data="yuzhi"
+                    height="100"
+                    border
+                    style="width: 100%"
+                    :row-class-name="tableRowClassName">
+                <el-table-column
+                        prop="name"
+                        label="设备名称"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="a"
+                        label="危险阈值"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="b"
+                        label="风险阈值">
+                </el-table-column>
+                <el-table-column
+                        prop="c"
+                        label="异常值">
+                </el-table-column>
+                <el-table-column
+                        prop="d"
+                        label="正常">
+                </el-table-column>
+                <el-table-column
+                        prop="e"
+                        label="安全">
+                </el-table-column>
+            </el-table>
+        </template>
+    </div>
+    <div id="main" style="width:1000px;height:600px;"></div>
+    </div>
+</div>
+
+
+
+<!-- 引入组件库 -->
+<script src="js/vue.js"></script>
+<script src="plugins/elementui/index.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+<script src="js/echarts.js"></script>
+<script>
+    var vue = new Vue({
+        el:"#demo",
+        created() {  //钩子函数，VUE对象初始化完成后自动执行
+        },
+        mounted(){
+            this.clean();
+        },
+        methods: { //创建函数
+            /*表格行内颜色设置*/
+            tableRowClassName({row, rowIndex}) {  //每行的颜色设置
+                if (rowIndex === 1) {
+                    return 'warning-row';
+                } else if (rowIndex === 3) {
+                    return 'success-row';
+                }else if (rowIndex === 5) {
+                    return 'warning-row';
+                }else if (rowIndex === 7) {
+                    return 'success-row';
+                }
+                return '';
+            },
+            chart() {
+                let myChart = echarts.init(document.getElementById('main'))
+                console.log("====================>")
+                let option = {
+                    title: {text:"阈值计算"},
+                    tooltip: {},
+                    toolbox: {feature: {
+                            saveAsImage: {}}},
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    legend: {
+                        data: ['运行数值','危险阈值','风险阈值']
+                    },
+                    xAxis: {type: 'category',
+                        default:"日期",
+                        name:"日期"
+                        },
+                    yAxis: {type: 'value',
+                        boundaryGap: true,},
+                    series: [
+                        {   name:'运行数值',
+                            data: this.chartdata,
+                            boundaryGap: true,
+                            type: 'line',
+                        },
+                            {   name:'危险阈值',
+                                data: this.yuzhi1,
+                                type: 'line'},
+                        {   name:'风险阈值',
+                            data: this.yuzhi2,
+                            type: 'line'}
+                    ]
+                }
+                myChart.setOption(option)
+            },
+            clean(){      //情况div中的图标并且释放资源，不然后续无法画图
+                document.getElementById('main').innerHTML = "";
+                document.getElementById('main').removeAttribute("_echarts_instance_");
+                console.log("图表页面清除完成");
+                this.chart();
+            },
+            reprint(){
+                this.selectData();
+                setTimeout(this.chart,500);
+                this.chart();
+            },
+            reprint2(){
+                this.yuzhi_change();
+                this.chart();
+                setTimeout(this.notingg(),1000);
+            },
+            notingg(){},
+            oneSelect(){
+                axios.get("/yuzhi/"+this.message1).then((res)=>{
+                    console.log(res.data);
+                    this.tableData = res.data.oneData;})
+            },
+            allSelect(){
+                axios.get("/yuzhi").then((res)=>{
+                    console.log(res.data);
+                this.tableData = res.data.allData;})
+            },
+            yuzhi_change(){
+                axios.get("/yuzhi_chart/"+this.eq_name+"/"+this.eq_bl).then((res)=>{
+                    this.chartdata = res.data.data1;
+                    this.yuzhi = res.data.yuzhi;
+                    this.yuzhi1 = res.data.yuzhi1;
+                    this.yuzhi2 = res.data.yuzhi2;
+                    this.yuzhi3 = res.data.yuzhi3;
+                    console.log("=============");
+                    console.log("chartdata"+this.chartdata);
+                    console.log("=============");
+                    console.log("data"+this.yuzhi);
+                    console.log("yuzhi1"+this.yuzhi1);
+                    console.log("yuzhi2"+this.yuzhi2);
+                    console.log("yuzhi3"+this.yuzhi3);
+                })
+            },
+            getChartData(){
+                axios.get("/yuzhi"+"/"+this.eq_name+"/"+this.eq_bl).then((res)=>{
+                    console.log(res.data);
+                    this
+                })
+            },
+            open() {
+                if (this.yuzhi !== this.test){
+                    this.$alert('是否确认修改', '确实修改', {
+                        confirmButtonText: '确定',
+                        callback: action => {
+                            this.$message({
+                                type: 'info',
+                                message: `action: ${ "修改成功" }`
+                            });
+                        }
+                    });
+                }
+
+            }
+        },
+        data() {     //数据储存调用
+            return{tableData:[],
+                message1:"SR1",
+                message2:"默认值",
+                name:"名称",
+                tableData:[],
+                echartData:[],
+                eq_name:'SR1',
+                eq_bl:'stable',
+                //这是下半部分用到的数据库内容
+                cahrtdata:[],
+                yuzhi:[],
+                yuzhi1:[],
+                yuzhi2:[],
+                yuzhi3:[],
+                test:[],
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

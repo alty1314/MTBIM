@@ -308,7 +308,7 @@
     <orderEntry type="library" name="Maven: io.vertx:vertx-bridge-common:3.9.0" level="project" />
     <orderEntry type="library" name="Maven: org.webjars.npm:babel__polyfill:7.4.4" level="project" />
     <orderEntry type="library" name="Maven: org.webjars.npm:core-js:3.0.0-beta.9" level="project" />
-    <orderEntry type="library" name="Maven: org.webjars.npm:regenerator-runtime:0.13.9" level="project" />
+    <orderEntry type="library" name="Maven: org.webjars.npm:regenerator-runtime:0.13.10" level="project" />
     <orderEntry type="library" name="Maven: org.webjars.npm:coreui__coreui:2.1.9" level="project" />
     <orderEntry type="library" name="Maven: org.webjars.npm:coreui__icons:0.3.0" level="project" />
     <orderEntry type="library" name="Maven: org.webjars.npm:jquery:3.4.1" level="project" />

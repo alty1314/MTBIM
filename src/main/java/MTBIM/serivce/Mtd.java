@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -283,6 +284,21 @@ public class Mtd implements MtDService{
         return "写入成功";
     }
 
+    @Override
+    public List<yuzhi> yuzhi_getAllData() {
+        List<yuzhi> allData;
+        allData = yuzhi_interface.selectList(null);
+        return allData;
+    }
+
+    @Override
+    public List<yuzhi> yuzhi_getOneData(String eq_name, String eq_property) {
+        HashMap<String ,Object> map=new HashMap<>();
+        map.put("name",eq_name);
+        List<yuzhi> oneData =  yuzhi_interface.selectByMap(map);
+        return oneData;
+    }
+
     @Override        //参数1设备名称；参数2设备属性
     public Map<String, Object> yuzhi_cal(String eq_name,String eq_property) {
         //返回数据
@@ -487,23 +503,31 @@ public class Mtd implements MtDService{
         map.put("property",eq_property);
         List<yuzhi> yuzhis = yuzhi_interface.selectByMap(map);
         yuzhi yuzhi1 =yuzhis.get(0);
+
+        double x = -1;
         if (u >= yuzhi1.getA()) {
             System.out.println("u>=A");
+            x=-10;
         }else if (u < yuzhi1.getA() && u >= yuzhi1.getB() ){
             System.out.println("A > u >=B");
+            x= 0.2;
         }else if (u < yuzhi1.getB() && u >= yuzhi1.getC() ){
             System.out.println("B > u >=C");
+            x=0.6;
         }else if (u < yuzhi1.getC() && u >= yuzhi1.getD() ){
             System.out.println("C > u >=D");
+            x = 0.7;
         }else if (u < yuzhi1.getD() && u >= yuzhi1.getE() ){
             System.out.println("D > u >=E");
+            x=1;
         }else if (u < yuzhi1.getE() ){
             System.out.println("E > u ");
+            x=1;
         }else {
             System.out.println("程序问题，请检查数据库和输入内容");
         }
 
-        return 0;
+        return x;
     }
 
     @Override
@@ -543,7 +567,7 @@ public class Mtd implements MtDService{
     }
 
     @Override
-    public MultiLayerNetwork model() {
+    public MultiLayerNetwork model(int in,int out,int fal) {
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(12345L)
                 .updater(new Adam(0.01))
@@ -552,15 +576,105 @@ public class Mtd implements MtDService{
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .list()
                 .layer(0, new DenseLayer.Builder().activation(Activation.LEAKYRELU)
-                        .nIn(13).nOut(10).build())
+                        .nIn(in).nOut(out).build())  //13 10
                 .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.MEAN_SQUARED_LOGARITHMIC_ERROR)
                         .activation(Activation.IDENTITY)
-                        .nIn(10).nOut(1).build())
-                .backpropType(BackpropType.TruncatedBPTT);
+                        .nIn(out).nOut(fal).build())
+                ; //10 1;
         MultiLayerConfiguration conf = builder.build();
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
         model.init();
         return model;
+    }
+
+    @Override
+    public int timeCALC(java.sql.Date data1, java.sql.Date data2) {
+        int Days = 0;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            long time = sdf.parse(String.valueOf(data1)).getTime();
+            long time1 = sdf.parse(String.valueOf(data2)).getTime();
+            Days = (int) ((time1 -time)/(24 * 60 * 60 * 1000));
+            if (Days < 0){
+                Days = Math.abs(Days);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return Days;
+    }
+
+    @Override
+    public double safe_cal(String eq_name, String eq_property, java.sql.Date time1) {
+        //计算日期后七天的数据
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(time1);
+        calendar.add(calendar.DATE,-30);
+        Date data = calendar.getTime();
+
+        //取出指定设备和时间段内最大的数值
+        SimpleDateFormat format2 = new SimpleDateFormat("YYYY-MM-dd");
+        QueryWrapper<mtd> wrapper = new QueryWrapper<>();
+        wrapper.eq("bl",eq_name);
+        java.sql.Date time = java.sql.Date.valueOf(format2.format(data));
+        wrapper.between("Time" , time, time1);
+        wrapper.orderByDesc(eq_property);
+        List<mtd> users = bookBao.selectList(wrapper);
+
+        double x = 0;
+        switch (eq_property){
+            case "displacement":
+                x =users.get(0).getDisplacement();
+                break;
+            case "settling":
+                x = users.get(0).getSettling();
+                break;
+            case "stable":
+                x = users.get(0).getStable();
+                break;
+            case "flow":
+                x = x = users.get(0).getFlow();
+                break;
+        }
+        return x;
+    }
+
+    @Override
+    public Map<String,double[]> safe_all(String eq_name, String eq_property, java.sql.Date time1) {
+        String[] eq = new String[4];
+        int s = 1;
+        for (int i = 0; i < 4; i++) {
+            eq[i] = eq_name+s;
+            s = s+1;
+        }
+        double[] s1 =  new double[4];
+        double[] s11 = new double[4];
+        double[] s12 = new double[4];
+        double[] s13 = new double[5];       //返回的数据储存列表 前四个是单个设备的数据得分，最后一个为系列数据的得分
+
+        s1[0] = 0.5;
+        s1[1] = 0.25;
+        s1[2] = 0.15;
+        s1[3] = 0.10;
+
+        for (int i = 0; i < 4; i++) {
+            s11[i] = safe_cal(eq[i],eq_property,time1);
+        }
+        /*s11[0] = safe_cal("SR1","stable", java.sql.Date.valueOf("2021-12-29"));
+        s11[1] = safe_cal("SR2","stable", java.sql.Date.valueOf("2021-12-29"));
+        s11[2] = safe_cal("SR3","stable", java.sql.Date.valueOf("2021-12-29"));
+        s11[3] = safe_cal("SR4","stable", java.sql.Date.valueOf("2021-12-29"));
+        */
+        for (int i = 0; i < s11.length; i++) {
+            s12[i] =  score_cal("SR1","stable",s11[i]);
+            s13[i] =s12[i]* s1[i];
+            System.out.println(s13[i]);
+        }
+        s13[4] = s13[0]+s13[1]+s13[2]+s13[3];
+        System.out.println(s13[4]);
+        Map<String, double[]> map = new HashMap<>();
+        map.put("data",s13);
+        return map;
     }
 }
 
